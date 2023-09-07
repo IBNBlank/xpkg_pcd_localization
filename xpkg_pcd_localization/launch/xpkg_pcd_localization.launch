@@ -1,0 +1,47 @@
+<!--#######################################-->
+<!-- Copyright (c) 2023  Dong Zhaorui.     -->
+<!-- All rights reserved.                  -->
+<!-- Author: Dong Zhaorui 847235539@qq.com -->
+<!-- Date  : 2023-08-29                    -->
+<!--#######################################-->
+
+<launch>
+    <arg name="sim" default="false" />
+    <arg name="map_pcd_path" default="" />
+    <param name="/use_sim_time" value="$(arg sim)" />
+
+    <node name="pcd_localization" pkg="xpkg_pcd_localization" type="pcd_localization" output="screen">
+        <param name="map_path" value="$(arg map_pcd_path)" />
+        <param name="map_frame" value="map" />
+        <param name="odom_frame" value="odom" />
+        <param name="sensor_frame" value="velodyne" />
+        <!-- target -->
+        <param name="target_voxel_size" value="0.4" />
+        <param name="target_pcd_size" value="80.0" />
+        <param name="target_update_distance" value="30.0" />
+        <!-- source -->
+        <param name="source_voxel_size" value="0.5" />
+        <param name="source_max_range" value="50.0" />
+        <param name="source_min_range" value="0.5" />
+        <param name="source_max_angle" value="3.14" />
+        <param name="source_min_angle" value="-3.14" />
+        <!-- ndt -->
+        <param name="ndt_trans_epsilon" value="0.05" />
+        <param name="ndt_step_size" value="0.1" />
+        <param name="ndt_resolution" value="2.0" />
+        <param name="ndt_max_iterations" value="30" />
+        <!-- init pose -->
+        <rosparam param="init_position">[0.0, 0.0, 0.0]</rosparam>
+        <rosparam param="init_orientation">[1.0, 0.0, 0.0, 0.0]</rosparam>
+        <!-- mode -->
+        <param name="mode_auto_start" value="true" />
+        <param name="mode_pure_lidar" value="false" />
+        <!-- subscribe -->
+        <remap from="init_trans" to="initialpose" />
+        <remap from="lidar_points" to="velodyne_points" />
+        <!-- publish -->
+        <remap from="sensor_trans" to="sensor_trans" />
+        <remap from="map_points" to="map_points" />
+        <remap from="debug_points" to="debug_points" />
+    </node>
+</launch>
