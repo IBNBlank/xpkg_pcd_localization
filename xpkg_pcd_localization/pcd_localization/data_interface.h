@@ -88,8 +88,8 @@ class DataInterface {
   inline void TimerCallback(const ros::TimerEvent&) { timer_handle_(); }
 
   // Subscriber Handle
-  void InitTransHandle(const geometry_msgs::PoseWithCovarianceStamped&);
-  void PointCloudHandle(const sensor_msgs::PointCloud2&);
+  void InitTransHandle(const geometry_msgs::PoseWithCovarianceStampedPtr&);
+  void PointCloudHandle(const sensor_msgs::PointCloud2Ptr&);
 
  private:
   DataInterface() = default;

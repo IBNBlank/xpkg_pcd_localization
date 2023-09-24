@@ -148,42 +148,43 @@ void DataInterface::TimerInit(double period, void (*handle)()) {
 }
 
 void DataInterface::PublishSensorTrans(const HexTransStamped& sensor_trans) {
-  geometry_msgs::PoseWithCovarianceStamped sensor_trans_msg;
+  geometry_msgs::PoseWithCovarianceStampedPtr sensor_trans_ptr(
+      new geometry_msgs::PoseWithCovarianceStamped);
 
-  sensor_trans_msg.header.stamp = ros::Time::now();
-  sensor_trans_msg.header.frame_id = kmap_frame_;
-  sensor_trans_msg.pose.pose.position.x = sensor_trans.translation.x();
-  sensor_trans_msg.pose.pose.position.y = sensor_trans.translation.y();
-  sensor_trans_msg.pose.pose.position.z = sensor_trans.translation.z();
-  sensor_trans_msg.pose.pose.orientation.w = sensor_trans.orientation.w();
-  sensor_trans_msg.pose.pose.orientation.x = sensor_trans.orientation.x();
-  sensor_trans_msg.pose.pose.orientation.y = sensor_trans.orientation.y();
-  sensor_trans_msg.pose.pose.orientation.z = sensor_trans.orientation.z();
+  sensor_trans_ptr->header.stamp = ros::Time::now();
+  sensor_trans_ptr->header.frame_id = kmap_frame_;
+  sensor_trans_ptr->pose.pose.position.x = sensor_trans.translation.x();
+  sensor_trans_ptr->pose.pose.position.y = sensor_trans.translation.y();
+  sensor_trans_ptr->pose.pose.position.z = sensor_trans.translation.z();
+  sensor_trans_ptr->pose.pose.orientation.w = sensor_trans.orientation.w();
+  sensor_trans_ptr->pose.pose.orientation.x = sensor_trans.orientation.x();
+  sensor_trans_ptr->pose.pose.orientation.y = sensor_trans.orientation.y();
+  sensor_trans_ptr->pose.pose.orientation.z = sensor_trans.orientation.z();
 
-  sensor_trans_pub_.publish(sensor_trans_msg);
+  sensor_trans_pub_.publish(sensor_trans_ptr);
 }
 
 void DataInterface::PublishMapPoints(
     const pcl::PointCloud<pcl::PointXYZ>::Ptr& map_points) {
-  sensor_msgs::PointCloud2 map_points_msg;
+  sensor_msgs::PointCloud2Ptr map_points_ptr(new sensor_msgs::PointCloud2);
 
-  pcl::toROSMsg(*map_points, map_points_msg);
-  map_points_msg.header.stamp = ros::Time::now();
-  map_points_msg.header.frame_id = kmap_frame_;
+  pcl::toROSMsg(*map_points, *map_points_ptr);
+  map_points_ptr->header.stamp = ros::Time::now();
+  map_points_ptr->header.frame_id = kmap_frame_;
 
-  map_points_pub_.publish(map_points_msg);
+  map_points_pub_.publish(map_points_ptr);
 }
 
 void DataInterface::PublishDebugPoints(
     const pcl::PointCloud<pcl::PointXYZ>::Ptr& debug_points,
     const std::string& frame) {
-  sensor_msgs::PointCloud2 debug_points_msg;
+  sensor_msgs::PointCloud2Ptr debug_points_ptr(new sensor_msgs::PointCloud2);
 
-  pcl::toROSMsg(*debug_points, debug_points_msg);
-  debug_points_msg.header.stamp = ros::Time::now();
-  debug_points_msg.header.frame_id = frame;
+  pcl::toROSMsg(*debug_points, *debug_points_ptr);
+  debug_points_ptr->header.stamp = ros::Time::now();
+  debug_points_ptr->header.frame_id = frame;
 
-  debug_points_pub_.publish(debug_points_msg);
+  debug_points_pub_.publish(debug_points_ptr);
 }
 
 void DataInterface::BroadcastMapToOdom(const Eigen::Affine3f& trans,
@@ -235,27 +236,27 @@ const HexTransStamped& DataInterface::ListenFrameToSensor(
 }
 
 void DataInterface::InitTransHandle(
-    const geometry_msgs::PoseWithCovarianceStamped& msg) {
-  if (ros::Time::now().toSec() - msg.header.stamp.toSec() < 0.2 &&
+    const geometry_msgs::PoseWithCovarianceStampedPtr& msg) {
+  if (ros::Time::now().toSec() - msg->header.stamp.toSec() < 0.2 &&
       !init_trans_flag_) {
-    init_trans_.time = msg.header.stamp.toSec();
+    init_trans_.time = msg->header.stamp.toSec();
     init_trans_.translation =
-        Eigen::Vector3f(msg.pose.pose.position.x, msg.pose.pose.position.y,
-                        msg.pose.pose.position.z);
+        Eigen::Vector3f(msg->pose.pose.position.x, msg->pose.pose.position.y,
+                        msg->pose.pose.position.z);
     init_trans_.orientation = Eigen::Quaternionf(
-        msg.pose.pose.orientation.w, msg.pose.pose.orientation.x,
-        msg.pose.pose.orientation.y, msg.pose.pose.orientation.z);
+        msg->pose.pose.orientation.w, msg->pose.pose.orientation.x,
+        msg->pose.pose.orientation.y, msg->pose.pose.orientation.z);
 
     init_trans_flag_ = true;
   }
 }
 
-void DataInterface::PointCloudHandle(const sensor_msgs::PointCloud2& msg) {
-  if (ros::Time::now().toSec() - msg.header.stamp.toSec() < 0.2 &&
+void DataInterface::PointCloudHandle(const sensor_msgs::PointCloud2Ptr& msg) {
+  if (ros::Time::now().toSec() - msg->header.stamp.toSec() < 0.2 &&
       !lidar_cloud_flag_) {
-    lidar_cloud_.time = msg.header.stamp.toSec();
+    lidar_cloud_.time = msg->header.stamp.toSec();
     lidar_cloud_.points->clear();
-    pcl::fromROSMsg(msg, *lidar_cloud_.points);
+    pcl::fromROSMsg(*msg, *lidar_cloud_.points);
 
     lidar_cloud_flag_ = true;
   }
